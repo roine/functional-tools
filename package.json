@@ -1,0 +1,25 @@
+{
+  "name": "functional-tools",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest  --verbose false",
+    "pretest": "npm run build"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.11.1",
+    "@babel/preset-env": "^7.11.0",
+    "@babel/preset-typescript": "^7.10.4",
+    "@types/react": "^16.9.46",
+    "babel-jest": "^26.3.0",
+    "fast-check": "^2.1.0",
+    "jest": "^26.4.0",
+    "react": "^16.13.1",
+    "ts-jest": "^26.2.0"
+  },
+  "dependencies": {}
+}
