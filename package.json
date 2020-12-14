@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
-    "test": "jest  --verbose false",
+    "build": "tsc -p .",
+    "test": "jest --verbose false",
     "pretest": "npm run build"
   },
   "author": "",
@@ -19,7 +19,8 @@
     "fast-check": "^2.1.0",
     "jest": "^26.4.0",
     "react": "^16.13.1",
-    "ts-jest": "^26.2.0"
+    "ts-jest": "^26.2.0",
+    "typescript": "^4.0.2"
   },
   "dependencies": {}
 }

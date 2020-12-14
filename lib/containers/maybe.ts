@@ -1,4 +1,4 @@
-import { curry } from "../..";
+import { curry } from "../curry";
 
 /**
  * Maybe type encapsulates an optional value
@@ -19,10 +19,15 @@ export type Maybe<V> = Just<V> | Nothing;
 
 export const nothing: Nothing = { _tag: "Nothing" };
 
-export const just = <V>(value: V): Just<V> => ({
-  _tag: "Just",
-  value,
-});
+export const just = <V>(value: V): Maybe<V> => {
+  if (value === null) {
+    return nothing;
+  }
+  return {
+    _tag: "Just",
+    value,
+  };
+};
 
 export const isNothing = <V>(maybe: Maybe<V>): maybe is Nothing => maybe._tag === "Nothing";
 
@@ -70,12 +75,42 @@ const uncurriedMap = <V, W>(fn: (just: V) => W, maybe: Maybe<V>): Maybe<W> => {
 
 export const map = curry(uncurriedMap);
 
-/**
- * Same as map but map takes one variant of the type and returns the same variant,
- * eg: map(id)(just(1)) always return a just
- * andThen can transform a just into a nothing
- */
-const uncurriedAndThen = <V, W>(fn: (just: V) => Maybe<W>, maybe: Maybe<V>): Maybe<W> => {
+const uncurriedMap2 = <V, W, X>(fn: (just: V, just2: W) => X, maybe: Maybe<V>, maybe2: Maybe<W>): Maybe<X> => {
+  if (isNothing(maybe)) {
+    return nothing;
+  } else {
+    if (isNothing(maybe2)) {
+      return nothing;
+    } else {
+      return just(fn(maybe.value, maybe2.value));
+    }
+  }
+};
+
+export const map2 = curry(uncurriedMap2);
+
+const uncurriedMap3 = <V, W, X, Y>(
+  fn: (just: V, just2: W, just3: X) => Y,
+  maybe: Maybe<V>,
+  maybe2: Maybe<W>,
+  maybe3: Maybe<X>
+): Maybe<Y> => {
+  if (isNothing(maybe)) {
+    return nothing;
+  } else if (isNothing(maybe2)) {
+    return nothing;
+  } else {
+    if (isNothing(maybe3)) {
+      return nothing;
+    } else {
+      return just(fn(maybe.value, maybe2.value, maybe3.value));
+    }
+  }
+};
+
+export const map3 = curry(uncurriedMap3);
+
+const uncurriedFlatMap = <V, W>(fn: (just: V) => Maybe<W>, maybe: Maybe<V>): Maybe<W> => {
   if (isJust(maybe)) {
     return fn(maybe.value);
   } else {
@@ -83,4 +118,4 @@ const uncurriedAndThen = <V, W>(fn: (just: V) => Maybe<W>, maybe: Maybe<V>): May
   }
 };
 
-export const andThen = curry(uncurriedAndThen);
+export const flatMap = curry(uncurriedFlatMap);

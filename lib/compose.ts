@@ -1,11 +1,3 @@
-const compose = (...fns: Function[]) => (arg: string | number | boolean | symbol | object): any => {
-  return fns.reduceRight((acc: any, fn: any) => {
-    if (acc === undefined) {
-      return fn(arg);
-    } else {
-      return fn(acc);
-    }
-  }, undefined);
+export const compose = <A, B>(...fns: ((arg: A) => B)[]) => (arg: A): B => {
+  return fns.reduceRight((acc: any, fn: any) => fn(acc), arg);
 };
-
-export default compose;

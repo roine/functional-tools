@@ -1,16 +1,19 @@
 // FNS
 
-export { default as curry } from "./lib/curry";
-export { default as uncurry } from "./lib/uncurry";
-export { default as compose } from "./lib/compose";
+export { curry } from "./lib/curry";
+export { uncurry } from "./lib/uncurry";
+export { compose } from "./lib/compose";
+import * as debug from "./lib/debug";
+export { debug };
 
 // TYPES
 
-import * as RemoteData from "./lib/types/remoteData";
-import * as Maybe from "./lib/types/maybe";
-export { RemoteData, Maybe };
+import * as RemoteData from "./lib/containers/remoteData";
+import * as Maybe from "./lib/containers/maybe";
+import * as Result from "./lib/containers/result";
+export { RemoteData, Maybe, Result };
 
 // REACT
 
-export { default as ReactBranch } from "./lib/react/branch";
-export { default as ReactCompose } from "./lib/react/compose";
+export { branch as ReactBranch } from "./lib/react/branch";
+export { compose as ReactCompose } from "./lib/react/compose";
