@@ -1,102 +1,112 @@
-/**
- * RemoteData type encapsulates a remote data
- * By having the data and its state bound the developer have no choice but handle the
- * data state correctly. It also helps with loading state.
- * Imagine you have 2 async data
- * in a component `const state{users: [], organisations: [], loadingUser: false, loadingOrganisations: false}`,
- * it can become
- * ```javascript
- const state: {
-    users: RemoteData<string, UserData>;
-    organisations: RemoteData<string, OrganisationData>;
-  } = { users: remoteInitial, organisations: remoteInitial };
- ```
- * (if more than one per component)
- */
-import { curry } from "../..";
+const Initial = Symbol();
+const Pending = Symbol();
+const Failure = Symbol();
+const Success = Symbol();
 
-export type Initial = {
-  readonly _tag: "Initial";
-};
+export namespace RemoteData {
+  export type Initial = {
+    readonly _tag: typeof Initial;
+  };
 
-export type Pending = {
-  readonly _tag: "Pending";
-};
+  export type Pending = {
+    readonly _tag: typeof Pending;
+  };
 
-export type Failure<E> = {
-  readonly _tag: "Failure";
-  readonly error: E;
-};
+  export type Failure<E> = {
+    readonly _tag: typeof Failure;
+    readonly error: E;
+  };
 
-export type Success<A> = {
-  readonly _tag: "Success";
-  readonly value: A;
-};
+  export type Success<A> = {
+    readonly _tag: typeof Success;
+    readonly value: A;
+  };
 
-export type RemoteData<E, A> = Initial | Pending | Failure<E> | Success<A>;
+  export type Model<E, A> = Initial | Pending | Failure<E> | Success<A>;
 
-// CONSTRUCTORS
+  // CONSTRUCTORS
 
-export const initial: RemoteData<never, never> = {
-  _tag: "Initial",
-};
+  export const initial: Model<never, never> = {
+    _tag: Initial,
+  };
 
-export const pending: RemoteData<never, never> = {
-  _tag: "Pending",
-};
+  export const pending: Model<never, never> = {
+    _tag: Pending,
+  };
 
-export const failure = <E>(error: E): RemoteData<E, never> => ({
-  _tag: "Failure",
-  error,
-});
+  export const failure = <E>(error: E): Model<E, never> => ({
+    _tag: Failure,
+    error,
+  });
 
-export const success = <A>(value: A): RemoteData<never, A> => ({
-  _tag: "Success",
-  value,
-});
+  export const success = <A>(value: A): Model<never, A> => ({
+    _tag: Success,
+    value,
+  });
 
-// CHECKERS
+  // GETTERS
 
-export const isInitial = (remoteData: RemoteData<unknown, unknown>): remoteData is Initial =>
-  remoteData._tag === "Initial";
+  export const fromSuccess = <A>(remoteData: Model<unknown, A>): A => {
+    if (isSuccess(remoteData)) {
+      return remoteData.value;
+    }
+    throw new Error("RemoteData.fromSuccess: not a success");
+  };
 
-export const isPending = (remoteData: RemoteData<unknown, unknown>): remoteData is Pending =>
-  remoteData._tag === "Pending";
+  export const fromFailure = <E>(remoteData: Model<E, unknown>): E => {
+    if (isFailure(remoteData)) {
+      return remoteData.error;
+    }
+    throw new Error("RemoteData.fromFailure: not a failure");
+  };
 
-export const isFailure = <E>(remoteData: RemoteData<E, unknown>): remoteData is Failure<E> =>
-  remoteData._tag === "Failure";
+  // CHECKERS
 
-export const isSuccess = <A>(remoteData: RemoteData<unknown, A>): remoteData is Success<A> =>
-  remoteData._tag === "Success";
+  export const isInitial = (
+      remoteData: Model<unknown, unknown>,
+  ): remoteData is Initial => remoteData._tag === Initial;
 
-// MAPPERS
+  export const isPending = (
+      remoteData: Model<unknown, unknown>,
+  ): remoteData is Pending => remoteData._tag === Pending;
 
-export const uncurriedMap = <E, V, W>(fn: (arg: V) => W, remoteData: RemoteData<E, V>): RemoteData<E, W> => {
-  if (isSuccess(remoteData)) {
-    return success(fn(remoteData.value));
-  }
-  return remoteData;
-};
+  export const isFailure = <E>(
+      remoteData: Model<E, unknown>,
+  ): remoteData is Failure<E> => remoteData._tag === Failure;
 
-export const map = curry(uncurriedMap);
+  export const isSuccess = <A>(
+      remoteData: Model<unknown, A>,
+  ): remoteData is Success<A> => remoteData._tag === Success;
 
-export const uncurriedMapFailed = <E, F, V>(fn: (arg: E) => F, remoteData: RemoteData<E, V>): RemoteData<F, V> => {
-  if (isFailure(remoteData)) {
-    return failure(fn(remoteData.error));
-  }
-  return remoteData;
-};
+  // MAPPERS
 
-export const mapFailed = curry(uncurriedMapFailed);
+  export const map = <E, V, W>(
+      fn: (arg: V) => W,
+      remoteData: Model<E, V>,
+  ): Model<E, W> => {
+    if (isSuccess(remoteData)) {
+      return success(fn(remoteData.value));
+    }
+    return remoteData;
+  };
 
-export const uncurriedAndThen = <E, V, W>(
-  fn: (arg: V) => RemoteData<E, W>,
-  remoteData: RemoteData<E, V>
-): RemoteData<E, W> => {
-  if (isSuccess(remoteData)) {
-    return fn(remoteData.value);
-  }
-  return remoteData;
-};
+  export const mapFailed = <E, F, V>(
+      fn: (arg: E) => F,
+      remoteData: Model<E, V>,
+  ): Model<F, V> => {
+    if (isFailure(remoteData)) {
+      return failure(fn(remoteData.error));
+    }
+    return remoteData;
+  };
 
-export const andThen = curry(uncurriedAndThen);
+  export const andThen = <E, V, W>(
+      fn: (arg: V) => Model<E, W>,
+      remoteData: Model<E, V>,
+  ): Model<E, W> => {
+    if (isSuccess(remoteData)) {
+      return fn(remoteData.value);
+    }
+    return remoteData;
+  };
+}
